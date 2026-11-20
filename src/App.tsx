@@ -28,7 +28,6 @@ import { buildEmbedUrl, useSoundCloudPlayer } from "@/hooks/use-soundcloud-playe
 import { cn } from "@/lib/utils"
 
 const GITHUB_REPOSITORY = "https://github.com/dagim-shimelis/lofi-for-programming"
-const GITHUB_API = "https://api.github.com/repos/dagim-shimelis/lofi-for-programming"
 const allTracks = playlists.flatMap((playlist) => playlist.tracks)
 const playlistOffsets = new Map(
   playlists.map((playlist, index) => [
@@ -65,7 +64,6 @@ function App() {
   const { iframeRef, player } = useSoundCloudPlayer(allTracks)
   const [embedUrl] = useState(() => buildEmbedUrl(player.selectedMix?.url ?? allTracks[0].url))
   const [expandedPlaylistId, setExpandedPlaylistId] = useState<string | null>(playlists[0].id)
-  const [starCount, setStarCount] = useState(0)
   const [isFullscreen, setIsFullscreen] = useState(() => Boolean(document.fullscreenElement))
   const [favorites, setFavorites] = useState<string[]>(() => {
     try {
@@ -114,19 +112,6 @@ function App() {
   useEffect(() => {
     localStorage.setItem("lofi-favorites", JSON.stringify(favorites))
   }, [favorites])
-
-  useEffect(() => {
-    const controller = new AbortController()
-
-    void fetch(GITHUB_API, { signal: controller.signal })
-      .then((response) => response.ok ? response.json() as Promise<{ stargazers_count: number }> : null)
-      .then((repository) => {
-        if (repository) setStarCount(repository.stargazers_count)
-      })
-      .catch(() => undefined)
-
-    return () => controller.abort()
-  }, [])
 
   useEffect(() => {
     const syncFullscreenState = () => setIsFullscreen(Boolean(document.fullscreenElement))
@@ -236,7 +221,7 @@ function App() {
             href={GITHUB_REPOSITORY}
             target="_blank"
             rel="noreferrer"
-            aria-label={`View the project on GitHub, ${starCount} stars`}
+            aria-label="View the project on GitHub"
           >
             <GitHubMark />
           </a>
