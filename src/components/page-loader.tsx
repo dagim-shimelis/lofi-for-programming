@@ -13,7 +13,7 @@ export function PageLoader({ phase, progress }: PageLoaderProps) {
     <div
       className={cn("page-loader", phase === "leaving" && "is-leaving")}
       role="status"
-      aria-label={`Loading Lofi for Programming: ${progress}%`}
+      aria-label={`Loading Meadow FM: ${progress}%`}
     >
       <div className="loader-stage">
         <img

@@ -12,8 +12,8 @@ export type Playlist = {
 
 const playlistCatalog: Playlist[] = [
   {
-    id: "lofi-for-programming",
-    title: "Lofi for programming",
+    id: "meadow-fm",
+    title: "Meadow FM",
     creator: "Lofi Chill",
     url: mixes[0]?.url ?? "https://soundcloud.com/lofichill",
     artwork: "/assets/meadow-cover.webp",

@@ -24,14 +24,20 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { playlists } from "@/data/playlists"
 import { useCrtPowerSound } from "@/hooks/use-crt-power-sound"
 import { usePageLoader } from "@/hooks/use-page-loader"
 import { buildEmbedUrl, useSoundCloudPlayer } from "@/hooks/use-soundcloud-player"
+import { useUserJot } from "@/hooks/use-userjot"
 import { cn } from "@/lib/utils"
 
 const GITHUB_REPOSITORY = "https://github.com/dagim-shimelis/lofi-for-programming"
-const USERJOT_FEEDBACK_URL = "https://dwightprompt.userjot.com"
 const INITIAL_PAGE_ASSETS = [
   "/assets/loader-tv.webp",
   "/assets/meadow-clouds.webp",
@@ -74,6 +80,7 @@ const shortcuts = [
 function App() {
   const { phase: loaderPhase, progress: loadProgress } = usePageLoader(INITIAL_PAGE_ASSETS)
   const { iframeRef, player } = useSoundCloudPlayer(allTracks)
+  const { openFeedback } = useUserJot()
   const [embedUrl] = useState(() => buildEmbedUrl(player.selectedMix?.url ?? allTracks[0].url))
   const [expandedPlaylistId, setExpandedPlaylistId] = useState<string | null>(playlists[0].id)
   const [isFullscreen, setIsFullscreen] = useState(() => Boolean(document.fullscreenElement))
@@ -218,49 +225,64 @@ function App() {
         <img className="field" src="/assets/meadow-field.webp" alt="" />
       </div>
 
-      <GlassPanel className="top-actions" variant="pill" preset="control" thickness={1.15} aria-label="Project links">
-        <GlassButton asChild variant="ghost" size="sm">
-          <a
-            href={USERJOT_FEEDBACK_URL}
-            target="_blank"
-            rel="noreferrer"
-            aria-label="Share feedback on UserJot"
-          >
-            <MessageSquarePlusIcon />
-          </a>
-        </GlassButton>
-        <Popover>
-          <PopoverTrigger asChild>
-            <GlassButton variant="ghost" size="sm" aria-label="Show keyboard shortcuts">
-              <CircleHelpIcon />
-            </GlassButton>
-          </PopoverTrigger>
-          <PopoverContent className="shortcut-popover" align="end" sideOffset={10}>
-            <div className="shortcut-heading">
-              <strong>Keyboard shortcuts</strong>
-              <span>Keep the music moving without leaving the keys.</span>
-            </div>
-            <dl className="shortcut-list">
-              {shortcuts.map(([keys, action]) => (
-                <div key={keys}>
-                  <dt><kbd>{keys}</kbd></dt>
-                  <dd>{action}</dd>
-                </div>
-              ))}
-            </dl>
-          </PopoverContent>
-        </Popover>
-        <GlassButton asChild variant="ghost" size="sm">
-          <a
-            href={GITHUB_REPOSITORY}
-            target="_blank"
-            rel="noreferrer"
-            aria-label="View the project on GitHub"
-          >
-            <GitHubMark />
-          </a>
-        </GlassButton>
-      </GlassPanel>
+      <TooltipProvider delayDuration={280}>
+        <GlassPanel className="top-actions" variant="pill" preset="control" thickness={1.15} aria-label="Project links">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <GlassButton
+                variant="ghost"
+                size="sm"
+                aria-label="Send feedback"
+                onClick={openFeedback}
+              >
+                <MessageSquarePlusIcon />
+              </GlassButton>
+            </TooltipTrigger>
+            <TooltipContent className="glass-tooltip" side="bottom" sideOffset={9}>Send feedback</TooltipContent>
+          </Tooltip>
+          <Popover>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <PopoverTrigger asChild>
+                  <GlassButton variant="ghost" size="sm" aria-label="Show keyboard shortcuts">
+                    <CircleHelpIcon />
+                  </GlassButton>
+                </PopoverTrigger>
+              </TooltipTrigger>
+              <TooltipContent className="glass-tooltip" side="bottom" sideOffset={9}>Keyboard shortcuts</TooltipContent>
+            </Tooltip>
+            <PopoverContent className="shortcut-popover" align="end" sideOffset={10}>
+              <div className="shortcut-heading">
+                <strong>Keyboard shortcuts</strong>
+                <span>Keep the music moving without leaving the keys.</span>
+              </div>
+              <dl className="shortcut-list">
+                {shortcuts.map(([keys, action]) => (
+                  <div key={keys}>
+                    <dt><kbd>{keys}</kbd></dt>
+                    <dd>{action}</dd>
+                  </div>
+                ))}
+              </dl>
+            </PopoverContent>
+          </Popover>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <GlassButton asChild variant="ghost" size="sm">
+                <a
+                  href={GITHUB_REPOSITORY}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="View the project on GitHub"
+                >
+                  <GitHubMark />
+                </a>
+              </GlassButton>
+            </TooltipTrigger>
+            <TooltipContent className="glass-tooltip" side="bottom" sideOffset={9}>View on GitHub</TooltipContent>
+          </Tooltip>
+        </GlassPanel>
+      </TooltipProvider>
 
       <GlassPanel
         className="playlist"
@@ -305,6 +327,7 @@ function App() {
                             className="track"
                             type="button"
                             aria-current={active ? "true" : undefined}
+                            data-playing={active && player.isPlaying ? "true" : undefined}
                             onClick={() => {
                               primeCrtAudio()
                               player.playIndex(globalIndex)
