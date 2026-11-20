@@ -4,6 +4,7 @@ import {
   CircleHelpIcon,
   ExpandIcon,
   HeartIcon,
+  MessageSquarePlusIcon,
   MinimizeIcon,
   PauseIcon,
   PlayIcon,
@@ -17,18 +18,33 @@ import {
 import { GlassButton } from "@/components/glassyui/glass-button"
 import { GlassPanel } from "@/components/glassyui/glass-panel"
 import { GlassSlider } from "@/components/glassyui/glass-slider"
+import { PageLoader } from "@/components/page-loader"
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { playlists } from "@/data/playlists"
 import { useCrtPowerSound } from "@/hooks/use-crt-power-sound"
+import { usePageLoader } from "@/hooks/use-page-loader"
 import { buildEmbedUrl, useSoundCloudPlayer } from "@/hooks/use-soundcloud-player"
+import { useUserJot } from "@/hooks/use-userjot"
 import { cn } from "@/lib/utils"
 
 const GITHUB_REPOSITORY = "https://github.com/dagim-shimelis/lofi-for-programming"
-const GITHUB_API = "https://api.github.com/repos/dagim-shimelis/lofi-for-programming"
+const INITIAL_PAGE_ASSETS = [
+  "/assets/loader-tv.webp",
+  "/assets/meadow-clouds.webp",
+  "/assets/meadow-cover.webp",
+  "/assets/meadow-field.webp",
+  "/assets/meadow-tv.png",
+] as const
 const allTracks = playlists.flatMap((playlist) => playlist.tracks)
 const playlistOffsets = new Map(
   playlists.map((playlist, index) => [
@@ -62,10 +78,11 @@ const shortcuts = [
 ] as const
 
 function App() {
+  const { phase: loaderPhase, progress: loadProgress } = usePageLoader(INITIAL_PAGE_ASSETS)
   const { iframeRef, player } = useSoundCloudPlayer(allTracks)
+  const { openFeedback } = useUserJot()
   const [embedUrl] = useState(() => buildEmbedUrl(player.selectedMix?.url ?? allTracks[0].url))
   const [expandedPlaylistId, setExpandedPlaylistId] = useState<string | null>(playlists[0].id)
-  const [starCount, setStarCount] = useState(0)
   const [isFullscreen, setIsFullscreen] = useState(() => Boolean(document.fullscreenElement))
   const [favorites, setFavorites] = useState<string[]>(() => {
     try {
@@ -93,6 +110,12 @@ function App() {
   )
 
   useEffect(() => {
+    document.title = player.isPlaying
+      ? `Lofi Music - ${selectedMix.title}`
+      : "Lofi Music"
+  }, [player.isPlaying, selectedMix.title])
+
+  useEffect(() => {
     let cancelled = false
 
     const loadArtwork = (source: string, fallback?: string) => {
@@ -114,19 +137,6 @@ function App() {
   useEffect(() => {
     localStorage.setItem("lofi-favorites", JSON.stringify(favorites))
   }, [favorites])
-
-  useEffect(() => {
-    const controller = new AbortController()
-
-    void fetch(GITHUB_API, { signal: controller.signal })
-      .then((response) => response.ok ? response.json() as Promise<{ stargazers_count: number }> : null)
-      .then((repository) => {
-        if (repository) setStarCount(repository.stargazers_count)
-      })
-      .catch(() => undefined)
-
-    return () => controller.abort()
-  }, [])
 
   useEffect(() => {
     const syncFullscreenState = () => setIsFullscreen(Boolean(document.fullscreenElement))
@@ -183,7 +193,13 @@ function App() {
   }
 
   return (
-    <main className="scene" aria-label="Lofi music player">
+    <main
+      className="scene"
+      aria-label="Lofi music player"
+      aria-busy={loaderPhase !== "hidden"}
+    >
+      <PageLoader phase={loaderPhase} progress={loadProgress} />
+
       <div className="world" aria-hidden="true">
         <img className="clouds" src="/assets/meadow-clouds.webp" alt="" />
         <div className="tv">
@@ -209,39 +225,64 @@ function App() {
         <img className="field" src="/assets/meadow-field.webp" alt="" />
       </div>
 
-      <GlassPanel className="top-actions" variant="pill" preset="control" thickness={1.15} aria-label="Project links">
-        <Popover>
-          <PopoverTrigger asChild>
-            <GlassButton variant="ghost" size="sm" aria-label="Show keyboard shortcuts">
-              <CircleHelpIcon />
-            </GlassButton>
-          </PopoverTrigger>
-          <PopoverContent className="shortcut-popover" align="end" sideOffset={10}>
-            <div className="shortcut-heading">
-              <strong>Keyboard shortcuts</strong>
-              <span>Keep the music moving without leaving the keys.</span>
-            </div>
-            <dl className="shortcut-list">
-              {shortcuts.map(([keys, action]) => (
-                <div key={keys}>
-                  <dt><kbd>{keys}</kbd></dt>
-                  <dd>{action}</dd>
-                </div>
-              ))}
-            </dl>
-          </PopoverContent>
-        </Popover>
-        <GlassButton asChild variant="ghost" size="sm">
-          <a
-            href={GITHUB_REPOSITORY}
-            target="_blank"
-            rel="noreferrer"
-            aria-label={`View the project on GitHub, ${starCount} stars`}
-          >
-            <GitHubMark />
-          </a>
-        </GlassButton>
-      </GlassPanel>
+      <TooltipProvider delayDuration={280}>
+        <GlassPanel className="top-actions" variant="pill" preset="control" thickness={1.15} aria-label="Project links">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <GlassButton
+                variant="ghost"
+                size="sm"
+                aria-label="Send feedback"
+                onClick={openFeedback}
+              >
+                <MessageSquarePlusIcon />
+              </GlassButton>
+            </TooltipTrigger>
+            <TooltipContent className="glass-tooltip" side="bottom" sideOffset={9}>Send feedback</TooltipContent>
+          </Tooltip>
+          <Popover>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <PopoverTrigger asChild>
+                  <GlassButton variant="ghost" size="sm" aria-label="Show keyboard shortcuts">
+                    <CircleHelpIcon />
+                  </GlassButton>
+                </PopoverTrigger>
+              </TooltipTrigger>
+              <TooltipContent className="glass-tooltip" side="bottom" sideOffset={9}>Keyboard shortcuts</TooltipContent>
+            </Tooltip>
+            <PopoverContent className="shortcut-popover" align="end" sideOffset={10}>
+              <div className="shortcut-heading">
+                <strong>Keyboard shortcuts</strong>
+                <span>Keep the music moving without leaving the keys.</span>
+              </div>
+              <dl className="shortcut-list">
+                {shortcuts.map(([keys, action]) => (
+                  <div key={keys}>
+                    <dt><kbd>{keys}</kbd></dt>
+                    <dd>{action}</dd>
+                  </div>
+                ))}
+              </dl>
+            </PopoverContent>
+          </Popover>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <GlassButton asChild variant="ghost" size="sm">
+                <a
+                  href={GITHUB_REPOSITORY}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="View the project on GitHub"
+                >
+                  <GitHubMark />
+                </a>
+              </GlassButton>
+            </TooltipTrigger>
+            <TooltipContent className="glass-tooltip" side="bottom" sideOffset={9}>View on GitHub</TooltipContent>
+          </Tooltip>
+        </GlassPanel>
+      </TooltipProvider>
 
       <GlassPanel
         className="playlist"
@@ -286,6 +327,7 @@ function App() {
                             className="track"
                             type="button"
                             aria-current={active ? "true" : undefined}
+                            data-playing={active && player.isPlaying ? "true" : undefined}
                             onClick={() => {
                               primeCrtAudio()
                               player.playIndex(globalIndex)

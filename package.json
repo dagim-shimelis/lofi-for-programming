@@ -1,5 +1,5 @@
 {
-  "name": "lofi-for-programming",
+  "name": "meadow-fm",
   "private": true,
   "version": "0.1.0",
   "description": "A keyboard-first SoundCloud lofi player for focused programming sessions.",
@@ -12,7 +12,7 @@
   "bugs": {
     "url": "https://github.com/dagim-shimelis/lofi-for-programming/issues"
   },
-  "homepage": "https://github.com/dagim-shimelis/lofi-for-programming#readme",
+  "homepage": "https://lofimusic.dagim.codes/",
   "packageManager": "bun@1.2.14",
   "type": "module",
   "engines": {
