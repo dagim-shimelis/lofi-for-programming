@@ -17,6 +17,7 @@ import {
 import { GlassButton } from "@/components/glassyui/glass-button"
 import { GlassPanel } from "@/components/glassyui/glass-panel"
 import { GlassSlider } from "@/components/glassyui/glass-slider"
+import { PageLoader } from "@/components/page-loader"
 import {
   Popover,
   PopoverContent,
@@ -24,10 +25,17 @@ import {
 } from "@/components/ui/popover"
 import { playlists } from "@/data/playlists"
 import { useCrtPowerSound } from "@/hooks/use-crt-power-sound"
+import { usePageLoader } from "@/hooks/use-page-loader"
 import { buildEmbedUrl, useSoundCloudPlayer } from "@/hooks/use-soundcloud-player"
 import { cn } from "@/lib/utils"
 
 const GITHUB_REPOSITORY = "https://github.com/dagim-shimelis/lofi-for-programming"
+const INITIAL_PAGE_ASSETS = [
+  "/assets/meadow-clouds.webp",
+  "/assets/meadow-cover.webp",
+  "/assets/meadow-field.webp",
+  "/assets/meadow-tv.png",
+] as const
 const allTracks = playlists.flatMap((playlist) => playlist.tracks)
 const playlistOffsets = new Map(
   playlists.map((playlist, index) => [
@@ -61,6 +69,7 @@ const shortcuts = [
 ] as const
 
 function App() {
+  const { phase: loaderPhase, progress: loadProgress } = usePageLoader(INITIAL_PAGE_ASSETS)
   const { iframeRef, player } = useSoundCloudPlayer(allTracks)
   const [embedUrl] = useState(() => buildEmbedUrl(player.selectedMix?.url ?? allTracks[0].url))
   const [expandedPlaylistId, setExpandedPlaylistId] = useState<string | null>(playlists[0].id)
@@ -168,7 +177,13 @@ function App() {
   }
 
   return (
-    <main className="scene" aria-label="Lofi music player">
+    <main
+      className="scene"
+      aria-label="Lofi music player"
+      aria-busy={loaderPhase !== "hidden"}
+    >
+      <PageLoader phase={loaderPhase} progress={loadProgress} />
+
       <div className="world" aria-hidden="true">
         <img className="clouds" src="/assets/meadow-clouds.webp" alt="" />
         <div className="tv">
