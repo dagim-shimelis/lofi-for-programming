@@ -10,5 +10,6 @@ Covered files:
 - `public/assets/meadow-cover.webp`
 - `public/assets/meadow-field.webp`
 - `public/assets/meadow-tv.png`
+- `public/og-image.jpg` (composed from the project artwork above)
 
 SoundCloud audio and track artwork are not bundled with the project. They are loaded from SoundCloud at runtime and remain subject to the rights and terms of their respective artists, labels, curators, and SoundCloud.
