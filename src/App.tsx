@@ -4,6 +4,7 @@ import {
   CircleHelpIcon,
   ExpandIcon,
   HeartIcon,
+  MessageSquarePlusIcon,
   MinimizeIcon,
   PauseIcon,
   PlayIcon,
@@ -30,7 +31,9 @@ import { buildEmbedUrl, useSoundCloudPlayer } from "@/hooks/use-soundcloud-playe
 import { cn } from "@/lib/utils"
 
 const GITHUB_REPOSITORY = "https://github.com/dagim-shimelis/lofi-for-programming"
+const USERJOT_FEEDBACK_URL = "https://dwightprompt.userjot.com"
 const INITIAL_PAGE_ASSETS = [
+  "/assets/loader-tv.webp",
   "/assets/meadow-clouds.webp",
   "/assets/meadow-cover.webp",
   "/assets/meadow-field.webp",
@@ -98,6 +101,12 @@ function App() {
     player.isMuted,
     player.trackChangeToken,
   )
+
+  useEffect(() => {
+    document.title = player.isPlaying
+      ? `Lofi Music - ${selectedMix.title}`
+      : "Lofi Music"
+  }, [player.isPlaying, selectedMix.title])
 
   useEffect(() => {
     let cancelled = false
@@ -210,6 +219,16 @@ function App() {
       </div>
 
       <GlassPanel className="top-actions" variant="pill" preset="control" thickness={1.15} aria-label="Project links">
+        <GlassButton asChild variant="ghost" size="sm">
+          <a
+            href={USERJOT_FEEDBACK_URL}
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Share feedback on UserJot"
+          >
+            <MessageSquarePlusIcon />
+          </a>
+        </GlassButton>
         <Popover>
           <PopoverTrigger asChild>
             <GlassButton variant="ghost" size="sm" aria-label="Show keyboard shortcuts">

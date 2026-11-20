@@ -16,35 +16,22 @@ export function PageLoader({ phase, progress }: PageLoaderProps) {
       aria-label={`Loading Lofi for Programming: ${progress}%`}
     >
       <div className="loader-stage">
-        <div className="loader-tv" aria-hidden="true">
-          <div className="loader-antenna loader-antenna-left" />
-          <div className="loader-antenna loader-antenna-right" />
-          <div className="loader-screen">
-            <span />
-            <span />
-            <span />
-            <span />
-          </div>
-          <i />
-          <b />
-        </div>
+        <img
+          className="loader-tv-image"
+          src="/assets/loader-tv.webp"
+          alt=""
+          aria-hidden="true"
+        />
 
-        <div className="loader-copy">
-          <strong>Tuning the station</strong>
-          <span>Setting the meadow for a focused session.</span>
-        </div>
-
-        <div className="loader-progress-row">
-          <div
-            className="loader-progress"
-            role="progressbar"
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={progress}
-          >
-            <span style={{ width: `${progress}%` }} />
-          </div>
-          <output>{progress}%</output>
+        <div
+          className="loader-progress"
+          role="progressbar"
+          aria-label="Loading page assets"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={progress}
+        >
+          <span style={{ width: `${progress}%` }} />
         </div>
       </div>
     </div>

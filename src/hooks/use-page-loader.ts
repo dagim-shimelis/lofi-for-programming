@@ -4,7 +4,7 @@ export type PageLoaderPhase = "loading" | "leaving" | "hidden"
 
 const MINIMUM_DISPLAY_MS = 900
 const MAXIMUM_WAIT_MS = 8000
-const EXIT_DURATION_MS = 450
+const EXIT_DURATION_MS = 600
 
 function preloadImage(source: string) {
   return new Promise<void>((resolve) => {
