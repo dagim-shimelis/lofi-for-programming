@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for helping improve Meadow FM.
+Thanks for helping improve Lofi for Programming.
 
 ## Development
 
