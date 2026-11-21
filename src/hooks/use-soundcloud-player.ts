@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 
 import type { Mix } from "@/data/mixes"
+import type { Playlist } from "@/data/playlists"
 
 type WidgetEvent = "READY" | "PLAY" | "PAUSE" | "FINISH" | "PLAY_PROGRESS" | "ERROR"
 
@@ -68,7 +69,7 @@ export function buildEmbedUrl(url: string) {
   return `https://w.soundcloud.com/player/?${params.toString()}`
 }
 
-export function useSoundCloudPlayer(mixes: Mix[]) {
+export function useSoundCloudPlayer(mixes: Mix[], playlists: Playlist[] = []) {
   const initialIndex = Math.max(0, mixes.findIndex((mix) => mix.id === window.location.hash.slice(1)))
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const widgetRef = useRef<SoundCloudWidget | null>(null)
@@ -125,16 +126,34 @@ export function useSoundCloudPlayer(mixes: Mix[]) {
 
   const playNext = useCallback(() => {
     if (isShuffling) {
-      let next = selectedIndexRef.current
-      while (mixes.length > 1 && next === selectedIndexRef.current) {
-        next = Math.floor(Math.random() * mixes.length)
+      // Shuffle within the current playlist only: find which playlist the
+      // current track belongs to and pick a random track from that same playlist.
+      let segmentStart = 0
+      let segmentEnd = mixes.length
+      let offset = 0
+      for (const playlist of playlists) {
+        const end = offset + playlist.tracks.length
+        if (selectedIndexRef.current >= offset && selectedIndexRef.current < end) {
+          segmentStart = offset
+          segmentEnd = end
+          break
+        }
+        offset = end
       }
-      playIndex(next)
+
+      const count = segmentEnd - segmentStart
+      if (count > 1) {
+        let next = selectedIndexRef.current
+        while (next === selectedIndexRef.current) {
+          next = segmentStart + Math.floor(Math.random() * count)
+        }
+        playIndex(next)
+      }
       return
     }
 
     playIndex(selectedIndexRef.current + 1)
-  }, [isShuffling, mixes.length, playIndex])
+  }, [isShuffling, mixes.length, playIndex, playlists])
 
   const playPrevious = useCallback(() => {
     playIndex(selectedIndexRef.current - 1)
