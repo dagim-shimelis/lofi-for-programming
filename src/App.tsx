@@ -79,7 +79,7 @@ const shortcuts = [
 
 function App() {
   const { phase: loaderPhase, progress: loadProgress } = usePageLoader(INITIAL_PAGE_ASSETS)
-  const { iframeRef, player } = useSoundCloudPlayer(allTracks)
+  const { iframeRef, player } = useSoundCloudPlayer(allTracks, playlists)
   const { openFeedback } = useUserJot()
   const [embedUrl] = useState(() => buildEmbedUrl(player.selectedMix?.url ?? allTracks[0].url))
   const [expandedPlaylistId, setExpandedPlaylistId] = useState<string | null>(playlists[0].id)
@@ -165,7 +165,12 @@ function App() {
   useEffect(() => {
     const handleKeyboard = (event: KeyboardEvent) => {
       const target = event.target
-      if (target instanceof HTMLElement && target.matches("input, textarea, select, [contenteditable='true']")) return
+      // Ignore keyboard shortcuts while the user is typing in a text field,
+      // including the feedback composer opened from the "Send feedback" button.
+      if (
+        target instanceof HTMLElement &&
+        (target.matches("input, textarea, select") || target.isContentEditable)
+      ) return
 
       const key = event.key.toLowerCase()
       if (event.code === "Space" || key === "k") {
