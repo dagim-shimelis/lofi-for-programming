@@ -163,14 +163,23 @@ function App() {
   }, [])
 
   useEffect(() => {
+    // Returns true when the element (or any ancestor) is a text field the
+    // user can type into — including the UserJot feedback composer opened
+    // from "Send feedback". Walking up the tree catches nested elements
+    // inside a contenteditable composer whose own node isn't contenteditable.
+    const isTypingTarget = (el: EventTarget | null): boolean => {
+      let node = el as Node | null
+      while (node && node instanceof HTMLElement) {
+        if (node.matches("input, textarea, select") || node.isContentEditable) return true
+        node = node.parentElement
+      }
+      return false
+    }
+
     const handleKeyboard = (event: KeyboardEvent) => {
-      const target = event.target
       // Ignore keyboard shortcuts while the user is typing in a text field,
       // including the feedback composer opened from the "Send feedback" button.
-      if (
-        target instanceof HTMLElement &&
-        (target.matches("input, textarea, select") || target.isContentEditable)
-      ) return
+      if (isTypingTarget(event.target) || isTypingTarget(document.activeElement)) return
 
       const key = event.key.toLowerCase()
       if (event.code === "Space" || key === "k") {
