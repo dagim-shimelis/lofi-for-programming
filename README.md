@@ -1,4 +1,4 @@
-# Meadow FM
+# Lofi for Programming
 
 A keyboard-first SoundCloud player for long programming sessions. It combines a painted meadow, a vintage CRT interface, glass controls, and a single-open playlist accordion containing 317 tracks across 11 collections.
 
