@@ -241,11 +241,14 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 .track:hover { background: #fff9; transform: translateX(2px); }
 .track[aria-current="true"] { background: #ffffef9c; border-color: #fff9; box-shadow: 0 1px 3px #36565810; }
 .track-name { overflow: hidden; font-weight: 620; text-overflow: ellipsis; white-space: nowrap; }
-.track-number { color: var(--soft-ink); font-size: 10px; font-variant-numeric: tabular-nums; }
-.track-favorite { color: #bd6b5e; font-size: 12px; text-align: center; }
-.track-current { display: none !important; }
-.track[aria-current="true"] .track-number { display: none; }
-.track[aria-current="true"] .track-current { display: inline-flex !important; }
+.track-number { grid-column: 1; color: var(--soft-ink); font-size: 10px; font-variant-numeric: tabular-nums; }
+.track-favorite { color: #bd6b5e; font-size: 12px; text-align: center; grid-column: 3; }
+.track-current { display: none !important; grid-column: 1; }
+.track-name { grid-column: 2; overflow: hidden; font-weight: 620; text-overflow: ellipsis; white-space: nowrap; }
+.track[data-playing="true"] .track-current,
+.track[data-has-played="true"] .track-current { display: inline-flex !important; }
+.track[data-playing="true"] .track-number,
+.track[data-has-played="true"] .track-number { display: none; }
 .levels { display: inline-flex; align-items: center; gap: 2px; height: 12px; }
 .levels i { display: block; width: 2px; height: 6px; border-radius: 5px; background: currentColor; transform-origin: bottom; }
 .levels i:nth-child(2) { height: 12px; }

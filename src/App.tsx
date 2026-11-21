@@ -91,6 +91,7 @@ function App() {
       return []
     }
   })
+  const [playedTrackIds, setPlayedTrackIds] = useState<Set<string>>(new Set())
 
   const selectedMix = player.selectedMix ?? allTracks[0]
   const selectedPlaylist = playlists.find((playlist) =>
@@ -114,6 +115,23 @@ function App() {
       ? `Lofi Music - ${selectedMix.title}`
       : "Lofi Music"
   }, [player.isPlaying, selectedMix.title])
+
+  useEffect(() => {
+    // Remember which tracks have been played at least once so the music-bar
+    // icon only appears on a song after it's been played (and paused).
+    // The update is deferred so it doesn't run synchronously inside the effect.
+    if (player.isPlaying && selectedMix && !playedTrackIds.has(selectedMix.id)) {
+      const timer = setTimeout(() => {
+        setPlayedTrackIds((ids) => {
+          if (ids.has(selectedMix.id)) return ids
+          const next = new Set(ids)
+          next.add(selectedMix.id)
+          return next
+        })
+      }, 0)
+      return () => clearTimeout(timer)
+    }
+  }, [player.isPlaying, selectedMix, playedTrackIds])
 
   useEffect(() => {
     let cancelled = false
@@ -328,6 +346,7 @@ function App() {
                             type="button"
                             aria-current={active ? "true" : undefined}
                             data-playing={active && player.isPlaying ? "true" : undefined}
+                            data-has-played={active && playedTrackIds.has(mix.id) ? "true" : undefined}
                             onClick={() => {
                               primeCrtAudio()
                               player.playIndex(globalIndex)

@@ -53,6 +53,23 @@ bun run dev
 
 The Vite development server prints the local URL.
 
+### PostHog analytics
+
+Copy the example environment file and add the project API key from your PostHog project settings:
+
+```bash
+cp .env.example .env.local
+```
+
+```dotenv
+VITE_POSTHOG_KEY=phc_your_project_api_key
+VITE_POSTHOG_HOST=https://us.i.posthog.com
+```
+
+Use `https://eu.i.posthog.com` for PostHog EU Cloud, or your own ingestion URL for a self-hosted instance. Analytics stays disabled when `VITE_POSTHOG_KEY` is unset. Add the same variables to the production deployment environment before building.
+
+The integration captures page views, autocaptured interactions, page leaves, and unhandled browser exceptions. Anonymous visitors only get person profiles after an explicit future `identify` call.
+
 ## Validation
 
 Run the same checks used by CI:
