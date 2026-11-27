@@ -162,15 +162,52 @@ function App() {
     return () => document.removeEventListener("fullscreenchange", syncFullscreenState)
   }, [])
 
+  const [isEditableFocus, setIsEditableFocus] = useState(false)
+
+  // UserJot renders its composer inside a shadow root, so browser events are
+  // retargeted to the widget host. Check both regular ancestors and the full
+  // composed event path to find the actual textarea inside the shadow DOM.
+  const isTypingTarget = (target: EventTarget | null): boolean => {
+    let node = target as Node | null
+    while (node && node instanceof HTMLElement) {
+      if (
+        node.matches("input, textarea, select, [data-userjot-engage-host]")
+        || node.isContentEditable
+      ) return true
+      node = node.parentElement
+    }
+    return false
+  }
+
+  const isTypingEvent = (event: Event): boolean =>
+    event.composedPath().some(isTypingTarget)
+
+  // Track editable focus as a fallback for keyboard events whose target is
+  // retargeted by a third-party widget.
+  useEffect(() => {
+    const onFocusIn = (event: FocusEvent) => {
+      if (isTypingEvent(event)) setIsEditableFocus(true)
+    }
+    const onFocusOut = (event: FocusEvent) => {
+      if (!isTypingTarget(event.relatedTarget)) setIsEditableFocus(false)
+    }
+    document.addEventListener("focusin", onFocusIn)
+    document.addEventListener("focusout", onFocusOut)
+    return () => {
+      document.removeEventListener("focusin", onFocusIn)
+      document.removeEventListener("focusout", onFocusOut)
+    }
+  }, [])
+
   useEffect(() => {
     const handleKeyboard = (event: KeyboardEvent) => {
-      const target = event.target
-      // Ignore keyboard shortcuts while the user is typing in a text field,
-      // including the feedback composer opened from the "Send feedback" button.
-      if (
-        target instanceof HTMLElement &&
-        (target.matches("input, textarea, select") || target.isContentEditable)
-      ) return
+      // Never fire shortcuts while focus is inside an editable field
+      // (e.g. the feedback composer while typing).
+      if (isEditableFocus) return
+
+      if (isTypingEvent(event)) return
+      if (isTypingTarget(document.activeElement)) return
+      if (event.metaKey || event.ctrlKey || event.altKey) return
 
       const key = event.key.toLowerCase()
       if (event.code === "Space" || key === "k") {
@@ -205,7 +242,7 @@ function App() {
 
     window.addEventListener("keydown", handleKeyboard)
     return () => window.removeEventListener("keydown", handleKeyboard)
-  }, [player, primeCrtAudio])
+  }, [player, primeCrtAudio, isEditableFocus])
 
   const toggleFavorite = () => {
     setFavorites((current) =>
